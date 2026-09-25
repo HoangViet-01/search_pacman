@@ -164,9 +164,33 @@ def breadthFirstSearch(problem: SearchProblem):
     return []
 
 def uniformCostSearch(problem: SearchProblem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # import PriorityQueue.
+        from util import PriorityQueue
+    
+        pq = PriorityQueue()
+        start_state = problem.getStartState()
+        # (start_state, [], 0) : (vi tri hien tai, [cac huong da di chuyen tu start -> hien tai], tong gia tri khi di den o hien tai).
+        pq.push((start_state, [], 0), 0) 
+        visited = {} # Tao 1 dictionary (state, cost).
+    
+        while not pq.isEmpty():
+            curr_state, actions, curr_cost = pq.pop()
+            if curr_state in visited and visited[curr_state] <= curr_cost:
+                continue
+            visited[curr_state] = curr_cost
+            # Kiem tra co phai Goal.
+            if problem.isGoalState(curr_state):
+                return actions
+    
+            for next_state, next_action, next_cost in problem.getSuccessors(curr_state):
+                new_action = actions + [next_action]
+                new_cost = curr_cost + next_cost
+    
+                if next_state not in visited or visited[next_state] < new_cost:
+                    pq.push((next_state, new_action, new_cost), new_cost) # Do uu tien trong pq : cost.
+    
+        return []
+        # util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
     """

@@ -90,31 +90,45 @@ def depthFirstSearch(problem: SearchProblem):
     util.raiseNotDefined()
 
 def breadthFirstSearch(problem: SearchProblem):
-
     """Search the shallowest nodes in the search tree first."""
 
+    # Tạo hàng đợi
     queue = util.Queue()
 
+    # Lưu các trạng thái đã duyệt
     visited = set()
 
+    # Lấy trạng thái bắt đầu
     start_state = problem.getStartState()
+
+    # Thêm trạng thái bắt đầu vào hàng đợi
     queue.push((start_state, []))
 
+    # Lặp khi hàng đợi còn phần tử
     while not queue.isEmpty():
+
+        # Lấy trạng thái đầu tiên ra khỏi hàng đợi
         state, actions = queue.pop()
 
+        # Nếu đã duyệt thì bỏ qua
         if state in visited:
             continue
 
+        # Đánh dấu đã duyệt
         visited.add(state)
 
+        # Nếu là trạng thái đích thì trả về đường đi
         if problem.isGoalState(state):
             return actions
 
+        # Duyệt các trạng thái kế tiếp
         for successor, action, stepCost in problem.getSuccessors(state):
+
+            # Nếu chưa duyệt thì thêm vào hàng đợi
             if successor not in visited:
                 queue.push((successor, actions + [action]))
 
+    # Không tìm thấy đường đi
     return []
 
 def uniformCostSearch(problem: SearchProblem):

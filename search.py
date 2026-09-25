@@ -78,36 +78,47 @@ def depthFirstSearch(problem: SearchProblem):
 
     Your search algorithm needs to return a list of actions that reaches the
     goal. Make sure to implement a graph search algorithm.
-
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
-
-    print("Start:", problem.getStartState())
-    print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
+
+    # Tạo ngăn xếp để lưu các trạng thái cần duyệt
     stack = util.Stack()
 
+    # Lưu các trạng thái đã được duyệt
     visited = set()
 
+    # Lấy trạng thái bắt đầu
     start_state = problem.getStartState()
 
+    # Đưa trạng thái bắt đầu vào ngăn xếp
     stack.push((start_state, []))
 
+    # Tiếp tục duyệt khi ngăn xếp còn phần tử
     while not stack.isEmpty():
+
+        # Lấy trạng thái trên cùng và đường đi tương ứng
         state, actions = stack.pop()
 
+        # Nếu trạng thái đã được duyệt thì bỏ qua
         if state in visited:
             continue
 
+        # Đánh dấu trạng thái hiện tại là đã duyệt
         visited.add(state)
 
+        # Nếu tìm thấy trạng thái đích thì trả về đường đi
         if problem.isGoalState(state):
             return actions
 
+        # Lấy các trạng thái kế tiếp của trạng thái hiện tại
         for successor, action, stepCost in problem.getSuccessors(state):
+
+            # Nếu trạng thái kế tiếp chưa được duyệt
             if successor not in visited:
-                stack.push((successor, actions + [action]))    
+
+                # Thêm trạng thái kế tiếp và đường đi mới vào ngăn xếp
+                stack.push((successor, actions + [action]))
+
+    # Không tìm thấy đường đi đến đích
     return []
 
 def breadthFirstSearch(problem: SearchProblem):

@@ -200,9 +200,38 @@ def nullHeuristic(state, problem=None):
     return 0
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
-    """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # import PriorityQueue.
+        from util import PriorityQueue
+    
+        pq = PriorityQueue()
+        start_state = problem.getStartState()
+        # (start_state, [], 0) : (vi tri hien tai, [cac huong da di chuyen tu start -> hien tai], tong gia tri khi di den o hien tai).
+        pq.push((start_state, [], 0), heuristic(start_state, problem))
+        visited = {}
+    
+        while not pq.isEmpty():
+            curr_state, actions, curr_cost = pq.pop()
+            # Kiem tra state hien tai da duoc duyet chua.
+            if curr_state in visited and visited[curr_state] <= curr_cost:
+                continue
+            visited[curr_state] = curr_cost
+    
+            # Kiem tra state hien tai co phai la Goal hay ko.
+            if problem.isGoalState(curr_state):
+                return actions
+    
+            for next_state, next_action, next_cost in problem.getSuccessors(curr_state):
+                new_g_cost = curr_cost + next_cost
+                # f(n) = g(n) + h(n).
+                f_cost = new_g_cost + heuristic(next_state, problem)
+                new_action = actions + [next_action]
+    
+                if next_state not in visited or new_g_cost < visited[next_state]:
+                    pq.push((next_state, new_action, new_g_cost), f_cost) # Do uu tien trong pq : f(n).
+    
+        return []
+    
+        # util.raiseNotDefined()
 
 
 # Abbreviations

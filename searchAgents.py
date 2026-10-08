@@ -271,6 +271,18 @@ def euclideanHeuristic(position, problem, info={}):
 #####################################################
 
 class CornersProblem(search.SearchProblem):
+    def __init__(self, startingGameState: pacman.GameState):
+        """
+        Stores the walls, pacman's starting position and corners.
+        """
+        self.walls = startingGameState.getWalls()
+        self.startingPosition = startingGameState.getPacmanPosition()
+        top, right = self.walls.height-2, self.walls.width-2
+        self.corners = ((1,1), (1,top), (right, 1), (right, top))
+        for corner in self.corners:
+            if not startingGameState.hasFood(*corner):
+                print('Warning: no food in corner ' + str(corner))
+        self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
 
     def getStartState(self):
         # Vị trí ban đầu của Pac-Man
@@ -334,6 +346,67 @@ class CornersProblem(search.SearchProblem):
                 successors.append((nextState, action, 1))
 
         return successors
+    
+    def getCostOfActions(self, actions):
+            """
+            Returns the cost of a particular sequence of actions.  If those actions
+            include an illegal move, return 999999.  This is implemented for you.
+            """
+            if actions == None: return 999999
+            x,y= self.startingPosition
+            for action in actions:
+                dx, dy = Actions.directionToVector(action)
+                x, y = int(x + dx), int(y + dy)
+                if self.walls[x][y]: return 999999
+            return len(actions)
+def cornersHeuristic(state: Any, problem: CornersProblem):
+    # Lấy danh sách tọa độ của 4 góc trong mê cung
+    corners = problem.corners
+
+    # Lấy thông tin tường của mê cung
+    walls = problem.walls
+
+    # state gồm:
+    # position: vị trí hiện tại của Pacman
+    # visitedCorners: các góc mà Pacman đã đi qua
+    position, visitedCorners = state
+
+    # Tìm các góc mà Pacman chưa đi qua
+    unvisitedCorners = [
+        corner for corner in corners
+        if corner not in visitedCorners
+    ]
+
+    # Nếu đã đi qua tất cả các góc thì heuristic bằng 0
+    if not unvisitedCorners:
+        return 0
+
+    import itertools
+
+    # Khởi tạo khoảng cách nhỏ nhất là vô cùng
+    minDistance = float('inf')
+
+    # Thử tất cả các thứ tự có thể đi qua các góc chưa thăm
+    for perm in itertools.permutations(unvisitedCorners):
+        # Tổng khoảng cách của một thứ tự đi qua các góc
+        distance = 0
+
+        # Bắt đầu từ vị trí hiện tại của Pacman
+        currentPosition = position
+
+        # Lần lượt đi qua từng góc trong thứ tự đang xét
+        for corner in perm:
+            # Tính khoảng cách Manhattan từ vị trí hiện tại đến góc tiếp theo
+            distance += util.manhattanDistance(currentPosition, corner)
+
+            # Cập nhật vị trí hiện tại thành góc vừa đến
+            currentPosition = corner
+
+        # Lưu lại tổng khoảng cách nhỏ nhất
+        minDistance = min(minDistance, distance)
+
+    # Trả về khoảng cách nhỏ nhất tìm được
+    return minDistance
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"

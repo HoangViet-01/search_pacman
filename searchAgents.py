@@ -287,10 +287,8 @@ class CornersProblem(search.SearchProblem):
     def getStartState(self):
         # Vị trí ban đầu của Pac-Man
         position = self.startingPosition
-
         # Ban đầu chưa đi qua góc nào
         visitedCorners = ()
-
         # Trạng thái gồm vị trí + các góc đã đi qua
         return (position, visitedCorners)
 
@@ -298,53 +296,37 @@ class CornersProblem(search.SearchProblem):
     def isGoalState(self, state):
         # Lấy các góc đã đi qua
         visitedCorners = state[1]
-
         # Nếu đã đi qua cả 4 góc thì đến đích
         return len(visitedCorners) == 4
 
-
     def getSuccessors(self, state):
         successors = []
-
         # Lấy vị trí hiện tại
         position = state[0]
-
         # Lấy danh sách các góc đã đi qua
         visitedCorners = state[1]
-
         # Duyệt các hướng có thể đi
         for action in [Directions.NORTH, Directions.SOUTH,
                        Directions.EAST, Directions.WEST]:
-
             x = position[0]
             y = position[1]
-
             dx, dy = Actions.directionToVector(action)
-
             nextx = int(x + dx)
             nexty = int(y + dy)
-
             # Nếu ô tiếp theo không phải tường
             if not self.walls[nextx][nexty]:
-
                 nextPosition = (nextx, nexty)
-
                 # Tạo danh sách góc mới
                 newVisitedCorners = visitedCorners
-
                 # Nếu vị trí mới là một góc
                 if nextPosition in self.corners:
-
                     # Nếu góc này chưa đi qua
                     if nextPosition not in visitedCorners:
                         newVisitedCorners = visitedCorners + (nextPosition,)
-
                 # Thêm trạng thái mới
                 nextState = (nextPosition, newVisitedCorners)
-
                 # Mỗi bước đi có cost = 1
                 successors.append((nextState, action, 1))
-
         return successors
     
     def getCostOfActions(self, actions):
@@ -499,8 +481,60 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    food_list = foodGrid.asList()
+
+    # Het thuc an.
+    if not food_list :
+        return 0
+
+    # Tao 1 dictionary ben trong problem.heuristicInfo.
+    if 'maze_distance' not in problem.heuristicInfo :
+        problem.heuristicInfo['maze_distance'] = {}
+
+    # Ham tinh k/c giua cac food voi nhau bang ham mazeDistance.
+    def getMazeDistance(p1, p2) :
+        if (p1, p2) not in problem.heuristicInfo['maze_distance'] :
+            dist = mazeDistance(p1, p2, problem.startingGameState)
+            problem.heuristicInfo['maze_distance'][(p1, p2)] = dist
+            problem.heuristicInfo['maze_distance'][(p2, p1)] = dist
+        return problem.heuristicInfo['maze_distance'][(p1, p2)]
+
+    # K/c ngan nhat thuc te (dung BFS) tu pacman den food gan nhat.
+    min_dist_pacman_food = min(getMazeDistance(position, food) for food in food_list)
+
+    # PRIM : tinh cay khung nho nhat.
+    unvisited = set(food_list)
+    startNode = unvisited.pop()
+    min_egde_to_tree = {node : getMazeDistance(node, startNode) for node in unvisited}
+    mst_weight = 0
+    while unvisited :
+        next_node = min(unvisited, key=lambda node : min_egde_to_tree[node]) # Tim node co dg di min.
+        mst_weight += min_egde_to_tree[next_node]
+        unvisited.remove(next_node)
+
+        # Kiem tra k/c tu node den next_node co gan hon k/c tu node den startNode hay ko.
+        for node in unvisited :
+            dist = getMazeDistance(node, next_node)
+            if dist < min_egde_to_tree[node] :
+                min_egde_to_tree[node] = dist
+
+    return min_dist_pacman_food + mst_weight
+    '''
+    # Tinh khoang cach manhattan cua pacman den tat ca food tren Grid.
+    dist_pacman_to_food = [util.manhattanDistance(position, food) for food in food_list]
+    min_dist_pacman_to_food = min(dist_pacman_to_food) # Lay thuc an xa pacman nhat -> Goi la A.
+    # furthest_food = food_list[dist_pacman_to_food.index(max_dis_pacman_to_food)] # Toa do cua A.
+
+    # Tim 1 diem thuc an khac co k/c manhattan xa nhat so voi A.
+    max_dist_food_to_food = 0
+    for i in range(len(food_list)) :
+        for j in range(i + 1, len(food_list)) :
+            dist = util.manhattanDistance(food_list[i], food_list[j])
+            if dist > max_dist_food_to_food :
+                max_dist_food_to_food = dist
+
+    return min_dist_pacman_to_food + max_dist_food_to_food
+    '''
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
